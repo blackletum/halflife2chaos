@@ -8762,14 +8762,12 @@ void CETreeSpam::StopEffect()
 void CEMountedGun::StartEffect()
 {
 	CBaseEntity* pTank;
-	//float flDistAway = 128;
-	//float flExtraHeight = 32;
 	CBasePlayer* pPlayer = UTIL_GetLocalPlayer();
 	Vector vecForward;
 	AngleVectors(pPlayer->EyeAngles(), &vecForward);
 	vecForward.z = 0;
 	vecForward.NormalizeInPlace();
-	Vector vecOrigin = pPlayer->GetAbsOrigin() + vecForward * 128 + Vector(0, 0, 16);
+	Vector vecOrigin = pPlayer->GetAbsOrigin() + vecForward * 100 + Vector(0, 0, 16);
 	trace_t tr;
 	CTraceFilterSkipTwoEntities filter(pPlayer, pPlayer->GetVehicleEntity(), COLLISION_GROUP_NONE);
 	UTIL_TraceLine(UTIL_GetLocalPlayer()->EyePosition(), vecOrigin, MASK_SOLID, &filter, &tr);
