@@ -2052,6 +2052,10 @@ void CAI_BaseNPC::OnLooked( int iDistance )
 
 	ClearConditions( conditionsToClear, ARRAYSIZE( conditionsToClear ) );
 
+	//if npc is in a script, don't see enemies. this avoids softlocks from when they go into combat state.
+	if (m_bInAScript)
+		return;
+
 	AISightIter_t iter;
 	CBaseEntity *pSightEnt;
 

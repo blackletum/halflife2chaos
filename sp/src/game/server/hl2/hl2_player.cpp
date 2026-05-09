@@ -6197,9 +6197,9 @@ bool CChaosEffect::CheckEffectContext()
 			return false;//bad map
 
 	//could distrupt cutscenes
-	if (m_nID == EFFECT_NPC_HATE || m_nID == EFFECT_NPC_FEAR)
-		if (CombatBreaksScene(pMapName))
-			return false;//bad map
+	//if (m_nID == EFFECT_NPC_HATE || m_nID == EFFECT_NPC_FEAR)
+		//if (CombatBreaksScene(pMapName))
+			//return false;//bad map
 
 	//if we miss the trigger_changelevel, the pod will get killed, killing us
 	if (m_nID == EFFECT_CANT_LEAVE_MAP)
