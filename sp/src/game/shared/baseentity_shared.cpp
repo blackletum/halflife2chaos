@@ -2318,9 +2318,13 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 		}
 		//apparently if this trace goes nowhere, it can count as not being blocked
 		//so we sweep from bottom to top
-		vecTraceEnd = vecTraceStart;
-		vecTraceEnd.z += vTraceMaxs.z;
-		vTraceMaxs.z = 0;
+		
+		//no! this can't detect when we're in an upward-facing displacement and doing another downward trace just for that would be madness
+		//this may have just been an instance of me not doing due diligence
+		//we've now changed the way we check if a trace hit something anyway. if this is still a problem, next time say where specifically.
+		//vecTraceEnd = vecTraceStart;
+		//vecTraceEnd.z += vTraceMaxs.z;
+		//vTraceMaxs.z = 0;
 		UTIL_TraceHull(vecTraceStart, vecTraceEnd, vTraceMins, vTraceMaxs, PhysicsSolidMaskForEntity(), this, GetCollisionGroup(), &mainTrace);
 	}
 	else
@@ -2330,7 +2334,7 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 		vTraceMins = CollisionProp()->CollisionSpaceMins();
 		vTraceMaxs = CollisionProp()->CollisionSpaceMaxs();
 	}
-	if (mainTrace.startsolid || mainTrace.fraction != 1)
+	if (mainTrace.DidHit())
 	{
 		if (unstuck_debug_findemptyspace.GetBool() && !bNoDebug)
 		{
@@ -2345,7 +2349,7 @@ bool CBaseEntity::FindPassableSpace(const Vector direction, float step, Vector& 
 		//we always do traces as if we're crouching. see if we can stand up now.
 		CBasePlayer* pPlayer = static_cast<CBasePlayer*>(this);
 		UTIL_TraceHull(vecTraceStart, vecTraceEnd + Vector(0, 0, 36) * pPlayer->GetModelScale(), vTraceMins, vTraceMaxs, PhysicsSolidMaskForEntity(), this, GetCollisionGroup(), &standTrace);
-		bCanStand = !(standTrace.startsolid || standTrace.fraction != 1);
+		bCanStand = !standTrace.DidHit();
 	}
 	//don't place on these textures to avoid falling through the ground in displacement-heavy maps
 	//NPCs are not acceptable ground because some of them (striders and such) have weird collisions with player
