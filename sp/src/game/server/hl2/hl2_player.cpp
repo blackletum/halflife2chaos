@@ -2663,7 +2663,14 @@ void CHL2_Player::StartGame()
 //-----------------------------------------------------------------------------
 void CHL2_Player::Spawn(void)
 {
-	//m_pController = physenv->CreateMotionController(this);
+#ifndef HL2MP
+#ifndef PORTAL
+	SetModel("models/player.mdl");
+#endif
+#endif
+
+	BaseClass::Spawn();
+	//do baseclass spawn first because it sets player's collision group and we want enable quickclip to apply after that
 	StartGame();
 	if (gpGlobals->eLoadType == MapLoad_NewGame)
 	{
@@ -2686,13 +2693,6 @@ void CHL2_Player::Spawn(void)
 			g_EventQueue.AddEvent(pAutosave, "Kill", 1.1, NULL, NULL);
 		}
 	}
-#ifndef HL2MP
-#ifndef PORTAL
-	SetModel("models/player.mdl");
-#endif
-#endif
-
-	BaseClass::Spawn();
 
 	//
 	//Our player movement speed is set once here. This will override the cl_xxxx
