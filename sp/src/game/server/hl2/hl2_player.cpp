@@ -9629,6 +9629,11 @@ void CEPhysConvert::StartEffect()
 		ep2outland11aHack = true;
 	}
 	*/
+	bool d2coast10Hack = false;
+	if (!Q_strcmp(pMapName, "d2_coast_10"))
+	{
+		d2coast10Hack = true;
+	}
 	bool d2prison06Hack = false;
 	if (!Q_strcmp(pMapName, "d2_prison_06"))
 	{
@@ -9723,6 +9728,15 @@ void CEPhysConvert::StartEffect()
 			pPhysicsObject->EnableMotion(true);
 			pPhysicsObject->RecheckCollisionFilter();
 			pPhysicsObject->Wake();
+			if (d2coast10Hack && pEnt->NameMatches("lighthouse_secret_door"))
+			{
+				Vector pos = pEnt->GetAbsOrigin();
+				QAngle ang = pEnt->GetAbsAngles();
+				pos.y -= 10;
+				ang.x += 10;
+				ang.y += 10;
+				pEnt->Teleport(&pos, &ang, NULL);
+			}
 			if (ep1c1700Hack && pEnt->NameMatches("door_lock2_2"))
 			{
 				Vector pos = pEnt->GetAbsOrigin();
