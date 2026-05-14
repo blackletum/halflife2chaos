@@ -19,7 +19,7 @@
 #include "tier0/memdbgon.h"
 
 IMPLEMENT_CLIENTCLASS_DT_NOBASE( C_Func_Dust, DT_Func_Dust, CFunc_Dust )
-	RecvPropInt( RECVINFO(m_Color) ),
+	RecvPropInt(RECVINFO(m_clrRender), 0, RecvProxy_IntToColor32),
 	RecvPropInt( RECVINFO(m_SpawnRate) ),
 	RecvPropFloat( RECVINFO(m_flSizeMin) ),
 	RecvPropFloat( RECVINFO(m_flSizeMax) ),
@@ -75,8 +75,8 @@ void CDustEffect::RenderParticles( CParticleRenderIterator *pIterator )
 			RenderParticle_Color255Size(
 				pIterator->GetParticleDraw(),
 				tPos,
-				Vector( m_pDust->m_Color.r, m_pDust->m_Color.g, m_pDust->m_Color.b ),
-				flAlpha * m_pDust->m_Color.a,
+				Vector( m_pDust->m_clrRender->r, m_pDust->m_clrRender->g, m_pDust->m_clrRender->b),
+				flAlpha * m_pDust->m_clrRender->a,
 				flSize
 				);
 		}
@@ -235,7 +235,7 @@ void C_Func_Dust::AttemptSpawnNewParticle()
 				else
 					pParticle->m_flSize = RemapVal( rand(), 0, VALVE_RAND_MAX, m_flSizeMin, m_flSizeMax );
 			
-				pParticle->m_Color = m_Color;
+				pParticle->m_Color = m_clrRender;
 			}
 
 			break;

@@ -43,7 +43,6 @@ public:
 // FGD properties.
 public:
 
-	CNetworkVar( color32, m_Color );
 	CNetworkVar( int, m_SpawnRate );
 	
 	CNetworkVar( float, m_flSizeMin );
@@ -83,7 +82,7 @@ public:
 };
 
 IMPLEMENT_SERVERCLASS_ST_NOBASE( CFunc_Dust, DT_Func_Dust )
-	SendPropInt( SENDINFO(m_Color),	32, SPROP_UNSIGNED ),
+	SendPropInt(SENDINFO(m_clrRender), 32, SPROP_UNSIGNED, SendProxy_Color32ToInt),
 	SendPropInt( SENDINFO(m_SpawnRate),	12, SPROP_UNSIGNED ),
 	SendPropInt( SENDINFO(m_SpeedMax),	12, SPROP_UNSIGNED ),
 	SendPropFloat( SENDINFO(m_flSizeMin), 0, SPROP_NOSCALE ),
@@ -103,7 +102,6 @@ BEGIN_DATADESC( CFunc_Dust )
 
 	DEFINE_FIELD( m_DustFlags,FIELD_INTEGER ),
 
-	DEFINE_KEYFIELD( m_Color,		FIELD_COLOR32,	"Color" ),
 	DEFINE_KEYFIELD( m_SpawnRate,	FIELD_INTEGER,	"SpawnRate" ),
 	DEFINE_KEYFIELD( m_flSizeMin,	FIELD_FLOAT,	"SizeMin" ),
 	DEFINE_KEYFIELD( m_flSizeMax,	FIELD_FLOAT,	"SizeMax" ),
@@ -162,8 +160,8 @@ void CFunc_Dust::Spawn()
 
 	//Since keyvalues can arrive in any order, and UTIL_StringToColor32 stomps alpha,
 	//install the alpha value here.
-	color32 clr = { m_Color.m_Value.r, m_Color.m_Value.g, m_Color.m_Value.b, m_iAlpha };
-	m_Color.Set( clr );
+	color32 clr = { m_clrRender->r, m_clrRender->g, m_clrRender->b, m_iAlpha };
+	m_clrRender.Set( clr );
 
 	BaseClass::Spawn();
 }
@@ -194,6 +192,14 @@ bool CFunc_Dust::KeyValue( const char *szKeyName, const char *szValue )
 	else if( stricmp( szKeyName, "Alpha" ) == 0 )
 	{
 		m_iAlpha = atoi( szValue );
+		return true;
+	}
+	else if (stricmp(szKeyName, "Color") == 0)
+	{
+		color32 tmp;
+		UTIL_StringToColor32(&tmp, szValue);
+		SetRenderColor(tmp.r, tmp.g, tmp.b);
+		// don't copy alpha, legacy support uses renderamt
 		return true;
 	}
 	else if( stricmp( szKeyName, "Frozen" ) == 0 )

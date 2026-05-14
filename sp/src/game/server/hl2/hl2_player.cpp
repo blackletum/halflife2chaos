@@ -8202,7 +8202,7 @@ void CEColors::StartEffect()
 {
 	for (CBaseEntity* pEnt = gEntList.FirstEnt(); pEnt; pEnt = gEntList.NextEnt(pEnt))
 	{
-		if (pEnt->ClassMatches("env_fo*"))
+		if (pEnt->ClassMatches("env_fo*") || pEnt->ClassMatches("func_s*"))
 		{
 			//change fog!
 			variant_t colorVariant;

@@ -56,6 +56,8 @@ BEGIN_DATADESC( CFuncSmokeVolume )
 	DEFINE_INPUT( m_RotationSpeed, FIELD_FLOAT, "SetRotationSpeed"),
 	DEFINE_INPUT( m_MovementSpeed, FIELD_FLOAT, "SetMovementSpeed"),
 	DEFINE_INPUT( m_Density, FIELD_FLOAT, "SetDensity"),
+	DEFINE_INPUT(m_Color1, FIELD_COLOR32, "SetColor"),
+	DEFINE_INPUT(m_Color2, FIELD_COLOR32, "SetColorSecondary"),
 
 END_DATADESC()
 
