@@ -8200,6 +8200,10 @@ void CEColors::TransitionEffect()
 }
 void CEColors::StartEffect()
 {
+	//r_PhysPropStaticLighting makes a prop use the static prop lighting algorithm when it's asleep
+	//the same algorithm's result is overrode by r_debugrandomstaticlighting, resulting in props changing color as they start/stop moving
+	//turn the variable off to keep the color consistent
+	engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_debugrandomstaticlighting 1;r_PhysPropStaticLighting 0;r_drawstaticprops 0;wait 2;flush;r_drawstaticprops 1");
 	for (CBaseEntity* pEnt = gEntList.FirstEnt(); pEnt; pEnt = gEntList.NextEnt(pEnt))
 	{
 		if (pEnt->ClassMatches("env_fo*") || pEnt->ClassMatches("func_s*"))
@@ -8213,6 +8217,15 @@ void CEColors::StartEffect()
 		}
 		ChangeEntity(pEnt);
 	}
+}
+void CEColors::StopEffect()
+{
+	//given the message in StartEffect(), you'd probably think that turning r_PhysPropStaticLighting back to 1 here would cause
+	//the odd color changing problem to appear once the effect ends, but no! it won't change colors because r_debugrandomstaticlighting
+	//is programmed in such a way that the lighting of a prop is only randomly assigned a color when its lighting needs to be updated
+	//static props will keep their colors because nothing will update their lighting (except say a flickering light)
+	//and physics props will keep their normal light colors because r_debugrandomstaticlighting has been set to 0 at the same time
+	engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_debugrandomstaticlighting 0;r_PhysPropStaticLighting 1");
 }
 void CEColors::ChangeEntity(CBaseEntity* pEntity)
 {

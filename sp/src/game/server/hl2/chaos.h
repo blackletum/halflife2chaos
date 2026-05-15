@@ -342,6 +342,7 @@ class CEColors : public CChaosEffect
 {
 public:
 	void StartEffect() override;
+	void StopEffect() override;
 	void TransitionEffect() override;
 	void OnEntitySpawned(CBaseEntity* pEntity) override;
 	void ChangeEntity(CBaseEntity* pEntity);
