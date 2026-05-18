@@ -110,6 +110,7 @@ enum Effect_T
 	EFFECT_MIRROR_WORLD,
 	EFFECT_EVIL_ELI,
 	EFFECT_SAVE_GULLS,
+	EFFECT_ASPECTRATIO,
 
 	NUM_EFFECTS
 };
@@ -695,5 +696,16 @@ class CESaveGulls : public CChaosEffect
 public:
 	void StartEffect() override;
 	void StopEffect() override;
+};
+class CEAspectRatio : public CChaosEffect
+{
+public:
+	void StartEffect() override;
+	void MaintainEffect() override;
+	void FastThink() override;
+	void StopEffect() override;
+	float m_flFromValue;
+	float m_flTargetValue;
+	float m_flRatioChangeTime;
 };
 #endif

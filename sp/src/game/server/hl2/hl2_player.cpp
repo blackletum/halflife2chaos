@@ -172,6 +172,7 @@ ConVar chaos_vote_enable("chaos_vote_enable", "0");
 ConVar chaos_unstuck_neweffect("chaos_unstuck_neweffect", "1", FCVAR_NONE, "Get the player unstuck every time a new effect starts. may not be wanted by some technical players.");
 ConVar chaos_shuffle_mode("chaos_shuffle_mode", "0");
 ConVar chaos_shuffle_debug("chaos_shuffle_debug", "0");
+ConVar default_aspectratio("default_aspectratio", "0");
 
 CON_COMMAND(logex, "logic explosion")
 {
@@ -5622,6 +5623,7 @@ void CHL2_Player::CreateEffect(int nEffect, string_t strHudName, int nContext, f
 //effect consideration checklist:
 //probably make a class
 //add convar/s to autoexec.cfg
+//add name in each mod's _english.txt
 //possibly add groups in groups.cfg
 //test starting effect
 //test ending effect
@@ -5696,6 +5698,7 @@ ConVar chaos_t_fire_full_clip("chaos_t_fire_full_clip", "1");
 ConVar chaos_t_mirror_world("chaos_t_mirror_world", "1");
 ConVar chaos_t_zombie_spam("chaos_t_zombie_spam", "1");
 ConVar chaos_t_save_gulls("chaos_t_save_gulls", "1");
+ConVar chaos_t_aspectratio("chaos_t_aspectratio", "1");
 
 ConVar chaos_p_zerog("chaos_p_zerog", "100");
 ConVar chaos_p_superg("chaos_p_superg", "100");
@@ -5797,6 +5800,7 @@ ConVar chaos_p_mirror_world("chaos_p_mirror_world", "100");
 ConVar chaos_p_evil_eli("chaos_p_evil_eli", "100");
 ConVar chaos_p_zombie_spam("chaos_p_zombie_spam", "100");
 ConVar chaos_p_save_gulls("chaos_p_save_gulls", "100");
+ConVar chaos_p_aspectratio("chaos_p_aspectratio", "100");
 #define ERROR_WEIGHT 1
 //intentionally not putting this on sector sweep because scanners are benign unless given rpgs
 #define EC_ENEMY_SPAM EC_HAS_WEAPON | EC_NO_SPAM_NPCS | EC_FAR_ENEMY
@@ -5903,6 +5907,7 @@ void CHL2_Player::PopulateEffects()
 	CreateEffect<CEMirrorWorld>(EFFECT_MIRROR_WORLD,		MAKE_STRING("#hl2c_mirror_world"),		EC_NONE,						chaos_t_mirror_world.GetFloat(),		chaos_p_mirror_world.GetInt());
 	CreateEffect<CEEvilNPC>(EFFECT_EVIL_ELI,				MAKE_STRING("#hl2c_evil_eli"),			EC_FAR_ENEMY,					-1,										chaos_p_evil_eli.GetInt());
 	CreateEffect<CESaveGulls>(EFFECT_SAVE_GULLS,			MAKE_STRING("#hl2c_save_gulls"),		EC_NONE,						chaos_t_save_gulls.GetFloat(),			chaos_p_save_gulls.GetInt());
+	CreateEffect<CEAspectRatio>(EFFECT_ASPECTRATIO,			MAKE_STRING("#hl2c_aspectratio"),		EC_NONE,						chaos_t_aspectratio.GetFloat(),			chaos_p_aspectratio.GetInt());
 }
 
 void CHL2_Player::ClearEffectContextCache()
@@ -10173,4 +10178,31 @@ void CESaveGulls::StopEffect()
 	{
 		UTIL_Remove(pEnt);
 	}
+}
+//NOTE: when testing with cte, need to set default_aspectratio 1.77777 for it to work correctly (this is normally set in the hud code)
+void CEAspectRatio::StartEffect()
+{
+	m_flFromValue = cvar->FindVar("r_aspectratio")->GetFloat();
+	if (m_flFromValue == 0)
+		m_flFromValue = default_aspectratio.GetFloat();
+	//choose whether to undershoot or overshoot the normal value, THEN pick from within a range
+	//this is because the "under" range is much smaller than the "over" range and if both
+	//coexist in a single rng call, "over" dominates vastly and makes the effect look lame
+	if (RandomInt(0, 1))
+		m_flTargetValue = RandomFloat(default_aspectratio.GetFloat(), default_aspectratio.GetFloat() * 3);
+	else
+		m_flTargetValue = RandomFloat(default_aspectratio.GetFloat() / 3, default_aspectratio.GetFloat());
+	m_flRatioChangeTime = gpGlobals->curtime;
+}
+void CEAspectRatio::MaintainEffect()
+{
+	StartEffect();
+}
+void CEAspectRatio::FastThink()
+{
+	cvar->FindVar("r_aspectratio")->SetValue(Lerp(gpGlobals->curtime - m_flRatioChangeTime, m_flFromValue, m_flTargetValue));
+}
+void CEAspectRatio::StopEffect()
+{
+	cvar->FindVar("r_aspectratio")->SetValue(0);
 }

@@ -15,7 +15,6 @@
 #include "hudelement.h"
 #include "hud_macros.h"
 #include "iclientmode.h"
-#include "c_basehlplayer.h"
 #include "vgui_controls/Panel.h"
 #include "vgui_controls/AnimationController.h"
 #include "vgui/ISurface.h"
@@ -84,7 +83,15 @@ void CHudChaosBar::MsgFunc_Go(bf_read &msg)
 	g_pClientMode->GetViewportAnimationController()->StartAnimationSequence("ChaosBarMove");
 	float flPercent = msg.ReadFloat();
 	//480 is the "hud resolution" in terms of granularity
-	int iScaledWidth = 480 * engine->GetScreenAspectRatio();
+	//we derive aspect ratio from screen dimensions because engine->GetScreenAspectRatio() returns r_aspectratio if that is non-zero. r_aspectratio is changed by effects.
+	int width, height;
+	engine->GetScreenSize(width, height);
+	float flRatio = (float)width / (float)height;
+	int iScaledWidth = 480 * flRatio;
+	//tell server what the aspect ratio is
+	char szCmd[2048];
+	Q_snprintf(szCmd, sizeof(szCmd), "default_aspectratio %f", flRatio);
+	engine->ClientCmd(szCmd);
 	float flWidth = vgui::scheme()->GetProportionalScaledValueEx(GetScheme(), iScaledWidth) * (1 - flPercent);//set bar width to a percent based on how much time until next effect.
 	SetSize(flWidth, GetTall());
 	//Msg("width %0.1f percent %0.01f\n", flWidth, 1 - flPercent);
