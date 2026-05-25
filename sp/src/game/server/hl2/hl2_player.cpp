@@ -1525,15 +1525,18 @@ void CHL2_Player::PreThink(void)
 			//CChaosEffect pEffect = g_ActiveEffects[i];
 			if (!pl.deadflag)
 				g_ChaosEffects[i]->m_flTimeRem -= gpGlobals->interval_per_tick / flTimeScale;//don't progress timer when dead to avoid confusion
-			g_ChaosEffects[i]->FastThink();
-			if (g_flEffectThinkRem <= 0)
-			{
-				g_ChaosEffects[i]->MaintainEffect();
-				bResetMaintainTimer = true;
-			}
 			if (g_ChaosEffects[i]->m_flTimeRem <= 0 && !pl.deadflag)//stop effects that are expiring, unless dead cause that's cheating
 			{
 				StopGivenEffect(g_ChaosEffects[i]->m_nID);
+			}
+			else
+			{
+				g_ChaosEffects[i]->FastThink();
+				if (g_flEffectThinkRem <= 0)
+				{
+					g_ChaosEffects[i]->MaintainEffect();
+					bResetMaintainTimer = true;
+				}
 			}
 		}
 		if (bResetMaintainTimer)
