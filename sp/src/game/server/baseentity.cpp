@@ -2063,6 +2063,7 @@ void CBaseEntity::UpdateOnRemove( void )
 		DevMsg( 2, "Warning: Deleting orphaned children of %s\n", GetClassname() );
 		for ( int i = childrenList.Count()-1; i >= 0; --i )
 		{
+			DevMsg(2, "%s had child %s\n", GetClassname(), childrenList[i]->GetClassname());
 			UTIL_Remove( childrenList[i] );
 		}
 	}

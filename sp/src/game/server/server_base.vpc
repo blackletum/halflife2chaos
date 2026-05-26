@@ -367,6 +367,8 @@ $Project
 		$File	"func_lod.cpp"
 		$File	"func_movelinear.cpp"
 		$File	"func_movelinear.h"
+		$File	"prop_movelinear.cpp"
+		$File	"prop_movelinear.h"
 		$File	"func_occluder.cpp"
 		$File	"func_reflective_glass.cpp"
 		$File	"func_smokevolume.cpp"

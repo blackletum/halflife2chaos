@@ -82,6 +82,7 @@
 #include <vector>
 #include "npc_combinedropship.h"
 #include "npc_crow.h"
+#include "npc_turret_ground.h"
 
 #ifdef HL2_EPISODIC
 #include "npc_alyx_episodic.h"
@@ -325,6 +326,7 @@ CChaosStoredEnt* StoreEnt(CBaseEntity* pEnt)
 					pStoredEnt->dropship = true;
 					pStoredEnt->containerid = pDropship->m_hContainer->m_iChaosID;
 					pStoredEnt->cratetype = pDropship->m_iCrateType;
+					pStoredEnt->gunrange = pDropship->m_flGunRange;
 				}
 				CAI_PlayerAlly* pPlayerAlly = dynamic_cast<CAI_PlayerAlly*>(pNPC);
 				if (pPlayerAlly)
@@ -339,10 +341,35 @@ CChaosStoredEnt* StoreEnt(CBaseEntity* pEnt)
 				}
 			}
 		}
-		if (pAnimating->GetParent() && pAnimating->GetParent()->ClassMatches("npc_combinedropship"))
+		if (pAnimating->GetParent())
 		{
-			pStoredEnt->dropshipcargo = true;
-			pStoredEnt->dropshipid = pAnimating->GetParent()->m_iChaosID;
+			//dont check classname. multiple possible entity classes.
+			if (pAnimating->GetParent()->ClassMatches("npc_combinedropship"))
+			{
+				pStoredEnt->dropshipcargo = true;
+				pStoredEnt->parentid = pAnimating->GetParent()->m_iChaosID;
+			}
+			else if (pAnimating->GetParent()->ClassMatches("prop_movelinear"))
+			{
+				pStoredEnt->groundturretnpc = true;
+				pStoredEnt->parentid = pAnimating->GetParent()->m_iChaosID;
+				CNPC_GroundTurret* pTurret = dynamic_cast<CNPC_GroundTurret*>(pAnimating);
+				if (pTurret)
+				{
+					pStoredEnt->closedposition = pTurret->m_vecClosedPos;
+					pStoredEnt->lightoffset = pTurret->m_vecLightOffset;
+					pStoredEnt->viewoffset = pTurret->GetViewOffset();
+				}
+			}
+		}
+		if (pEnt->ClassMatches("prop_movelinear"))
+		{
+			pStoredEnt->groundturretmove = true;
+			for (CBaseEntity* pChild = pEnt->FirstMoveChild(); pChild; pChild = pEnt->NextMovePeer())
+			{
+				if (pChild->ClassMatches("npc_turret_ground"))
+					pStoredEnt->turretnpcid = pChild->m_iChaosID;
+			}
 		}
 	}
 	return pStoredEnt;
@@ -413,6 +440,7 @@ CBaseEntity* RetrieveStoredEnt(CChaosStoredEnt* pStoredEnt)
 				if (pStoredEnt->dropship)
 				{
 					pEnt->KeyValue("CrateType", pStoredEnt->cratetype);
+					pEnt->KeyValue("GunRange", pStoredEnt->gunrange);
 				}
 				if (pStoredEnt->playerally)
 				{
@@ -2150,6 +2178,7 @@ void CHL2_Player::RemoveDeadEnts()
 //
 void CHL2_Player::SpawnStoredEnts()
 {
+	//remove old versions of entities. has to be a separate for loop to make sure entities with dependencies get recreated correctly
 	for (int j = 0; g_PersistEnts.Size() >= j + 1; j++)
 	{
 		//Msg("Entity block\n");
@@ -2162,7 +2191,7 @@ void CHL2_Player::SpawnStoredEnts()
 				if (pDupeEnt->m_iChaosID == g_PersistEnts[j]->chaosid)
 				{
 					//Msg("Found duplicate entity %s with chaosid %i, replacing with saved version\n", STRING(pDupeEnt->GetEntityName()), pDupeEnt->m_iChaosID);
-					pDupeEnt->SUB_Remove();
+					UTIL_RemoveImmediate(pDupeEnt);
 					break;
 				}
 			}
@@ -2172,6 +2201,9 @@ void CHL2_Player::SpawnStoredEnts()
 			}
 			pDupeEnt = gEntList.NextEnt(pDupeEnt);
 		}
+	}
+	for (int j = 0; g_PersistEnts.Size() >= j + 1; j++)
+	{
 		CChaosStoredEnt* pStored = g_PersistEnts[j];
 		CBaseEntity* pEnt = RetrieveStoredEnt(pStored);
 		if (pEnt)
@@ -2189,20 +2221,36 @@ void CHL2_Player::SpawnStoredEnts()
 				pPZombie->EnableCrab(1, pStored->crabs[1]);
 				pPZombie->EnableCrab(2, pStored->crabs[2]);
 			}
+
+			//variable is set in spawn
+			if (pStored->groundturretnpc)
+			{
+				CNPC_GroundTurret* pTurret = dynamic_cast<CNPC_GroundTurret*>(pEnt);
+				if (pTurret)
+				{
+					pTurret->m_vecClosedPos = pStored->closedposition;
+					pTurret->m_vecLightOffset = pStored->lightoffset;
+					pTurret->SetViewOffset(pStored->viewoffset);
+					pTurret->m_bEnabled = true;
+				}
+			}
+
 			//make sure container attaches back to dropship and kill the new dropship that Spawn() will spawn
 			//this has to be two-way because i don't trust that one or the other will always be first in memory
 			if (pStored->dropshipcargo)
 			{
-				CBaseEntity* pShip = GetEntityWithID(pStored->dropshipid);
+				CBaseEntity* pShip = GetEntityWithID(pStored->parentid);
 				CNPC_CombineDropship* pDropship = dynamic_cast<CNPC_CombineDropship*>(pShip);
 				if (pDropship)
 				{
 					CBaseAnimating* pAnimating = dynamic_cast<CBaseAnimating*>(pEnt);
-					if (pAnimating && pDropship->m_hContainer && pDropship->m_hContainer->m_iChaosID != pStored->chaosid)
+					if (pAnimating)
 					{
-						UTIL_Remove(pDropship->m_hContainer);
+						if (pDropship->m_hContainer && pDropship->m_hContainer != pAnimating)
+							UTIL_Remove(pDropship->m_hContainer);
 						pDropship->m_hContainer = pAnimating;
 						pAnimating->SetParent(pDropship, 0);
+						pAnimating->SetOwnerEntity(pDropship);
 					}
 				}
 			}
@@ -2213,17 +2261,32 @@ void CHL2_Player::SpawnStoredEnts()
 				if (pDropship)
 				{
 					pDropship->ChaosDeploy();
-					if (pCargo && pDropship->m_hContainer)
+					if (pCargo)
 					{
 						CBaseAnimating* pAnimating = dynamic_cast<CBaseAnimating*>(pCargo);
-						if (pAnimating && pDropship->m_hContainer->m_iChaosID != pStored->containerid)
+						if (pAnimating)
 						{
-							UTIL_Remove(pDropship->m_hContainer);
+							if (pDropship->m_hContainer && pDropship->m_hContainer != pAnimating)
+								UTIL_Remove(pDropship->m_hContainer);
 							pDropship->m_hContainer = pAnimating;
 							pAnimating->SetParent(pDropship, 0);
+							pAnimating->SetOwnerEntity(pDropship);
 						}
 					}
 				}
+			}
+			//ditto relationship between the parts of a ground turret
+			if (pStored->groundturretnpc)
+			{
+				CBaseEntity* pMoveLinear = GetEntityWithID(pStored->parentid);
+				if (pMoveLinear)
+					pEnt->SetParent(pMoveLinear);
+			}
+			if (pStored->groundturretmove)
+			{
+				CBaseEntity* pNPC = GetEntityWithID(pStored->turretnpcid);
+				if (pNPC)
+					pNPC->SetParent(pEnt);
 			}
 		}
 	}
@@ -7454,7 +7517,7 @@ CAI_BaseNPC* CChaosEffect::ChaosSpawnNPC(const char* className, string_t strActu
 		}
 		else if (FStrEq(className, "npc_turret_ground"))
 		{
-			CBaseEntity* pMover = CreateEntityByName("func_movelinear");
+			CBaseEntity* pMover = CreateEntityByName("prop_movelinear");
 			pMover->SetAbsOrigin(vecOrigin);
 
 			//get a vector for what's "upward" relative to the surface we're on
@@ -7466,6 +7529,7 @@ CAI_BaseNPC* CChaosEffect::ChaosSpawnNPC(const char* className, string_t strActu
 
 			char buf[512];
 			Q_snprintf(buf, sizeof(buf), "%.10f %.10f %.10f", angUp.x, angUp.y, angUp.z);
+			pMover->SetAbsAngles(aAngles);
 			pMover->KeyValue("movedir", buf);
 			pMover->KeyValue("movedistance", "32");
 			pMover->KeyValue("speed", "40");
@@ -7474,26 +7538,14 @@ CAI_BaseNPC* CChaosEffect::ChaosSpawnNPC(const char* className, string_t strActu
 			pMover->KeyValue("stopsound", "Streetwar.d3_c17_10b_metal_stop1");
 			pMover->KeyValue("targetname", "turret_lift");
 			pMover->KeyValue("OnFullyOpen", "turret_ground,Enable,,0,-1");
+			pMover->KeyValue("model", "models/props_c17/turretcover.mdl");
+			pMover->KeyValue("disableshadows", "1");
+			pMover->KeyValue("solid", "6");
 			g_iChaosSpawnCount++; pMover->KeyValue("chaosid", g_iChaosSpawnCount);
-			pNPC->SetAbsOrigin(vecOrigin - (up * 8));//put turret below top part of the cover
-			pNPC->SetAbsAngles(aAngles);
 			pMover->m_bChaosPersist = true;
 			pMover->m_bChaosSpawned = true;
 			DispatchSpawn(pMover);
 			pMover->Activate();
-			CBaseEntity* pProp = CreateEntityByName("prop_dynamic_override");
-			pProp->SetAbsOrigin(vecOrigin);
-			pProp->SetAbsAngles(aAngles);
-			pProp->KeyValue("model", "models/props_c17/turretcover.mdl");
-			pProp->KeyValue("disableshadows", "1");
-			pProp->KeyValue("solid", "6");
-			g_iChaosSpawnCount++; pProp->KeyValue("chaosid", g_iChaosSpawnCount);
-			pProp->m_bChaosPersist = true;
-			pProp->m_bChaosSpawned = true;
-			DispatchSpawn(pProp);
-			pProp->Activate();
-			pNPC->SetParent(pMover);
-			pProp->SetParent(pMover);
 			variant_t sVariant;
 			pMover->AcceptInput("Open", pMover, pMover, sVariant, 0);
 			CBaseEntity* pSound1 = CreateEntityByName("ambient_generic");
@@ -7508,6 +7560,9 @@ CAI_BaseNPC* CChaosEffect::ChaosSpawnNPC(const char* className, string_t strActu
 			pSound1->Activate();
 			g_EventQueue.AddEvent("turret_detected_sound", "PlaySound", sVariant, 0.01, pPlayer, pPlayer);
 			g_EventQueue.AddEvent("turret_detected_sound", "StopSound", sVariant, 1.5, pPlayer, pPlayer);
+			pNPC->SetAbsOrigin(vecOrigin - (up * 8));//put turret below top part of the cover
+			pNPC->SetAbsAngles(aAngles);
+			pNPC->SetParent(pMover);
 			pNPC->KeyValue("OnDeath", "turret_lift,Close,,0,-1");
 		}
 

@@ -128,13 +128,6 @@ void CNPC_GroundTurret::Spawn( void )
 		m_flSensingDist = 2048;
 	}
 
-	if( !GetParent() )
-	{
-		DevMsg("ERROR! npc_ground_turret with no parent!\n");
-		UTIL_Remove(this);
-		return;
-	}
-
 	m_flTimeNextShoot = gpGlobals->curtime;
 	m_flTimeNextPing = gpGlobals->curtime;
 

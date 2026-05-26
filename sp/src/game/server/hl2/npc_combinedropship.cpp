@@ -230,6 +230,9 @@ void CCombineDropshipContainer::Spawn()
 #endif //_XBOX
 
 	m_iHealth = m_iMaxHealth = sk_dropship_container_health.GetFloat();
+	SetBlocksLOS(false);
+	//this is only necessary for chaospersist dropships. for some reason they will think this crate is blocking their los to enemies after a saveload.
+	//to be fair, their eyes are inside the crate, so it's more of a bug that they can see enemies ever.
 }
 
 

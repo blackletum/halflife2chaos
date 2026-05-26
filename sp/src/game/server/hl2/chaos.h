@@ -217,6 +217,7 @@ class CChaosStoredEnt
 public:
 	const char *strClassname;
 	string_t targetname;
+	int parentid;
 	int chaosid;
 	Vector origin;
 	QAngle angle;
@@ -263,14 +264,23 @@ public:
 	bool dropship = false;
 	int containerid;
 	int cratetype;
+	int gunrange;
 
 	bool dropshipcargo = false;
-	int dropshipid;
 
 	bool playerally = false;
 	bool gameendondeath = false;
 
 	bool bird = false;
+
+	bool groundturretmove = false;
+	int turretnpcid;
+
+	bool groundturretnpc = false;
+	Vector closedposition;
+	//we shouldn't need to be setting these, but there seems to be a bug where the model loses attachment point data after saveloading and i have no clue how to fix that.
+	Vector lightoffset;
+	Vector viewoffset;
 };
 //CUtlVector<int>				g_iActiveEffects;
 int g_iActiveEffects[MAX_ACTIVE_EFFECTS];

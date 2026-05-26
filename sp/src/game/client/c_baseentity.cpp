@@ -1977,7 +1977,7 @@ int C_BaseEntity::DrawModel( int flags )
 	{
 		return drawn;
 	}
-
+	//no! bad pin! you can't remove this check, it'll just cause an engine crash
 	int modelType = modelinfo->GetModelType( model );
 	switch ( modelType )
 	{
