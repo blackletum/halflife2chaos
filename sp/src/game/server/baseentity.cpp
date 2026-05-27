@@ -3500,6 +3500,10 @@ void CBaseEntity::SetMoveType( MoveType_t val, MoveCollide_t moveCollide )
 
 void CBaseEntity::Spawn( void ) 
 {
+	//this was originally in DispatchSpawn(), a function that is not strictly necessary to call in order to spawn an entity.
+	//because CFuncCombineBallSpawner::SpawnBall() doesn't call DispatchSpawn(), pretty colors was missing energy balls spawned from that entity.
+	//putting this here makes so much more sense to me. a smarter thing to do might be to just call DispatchSpawn() in here.
+	gEntList.NotifySpawn(this);
 }
 
 

@@ -108,9 +108,9 @@ bool C_PropCombineBall::InitMaterials( void )
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void C_PropCombineBall::DrawMotionBlur( void )
+void C_PropCombineBall::DrawMotionBlur(float const* color)
 {
-	float color[3];
+	float newcolor[3];
 
 	Vector	vecDir = GetAbsOrigin() - m_vecLastOrigin;
 	float	speed = VectorNormalize( vecDir );
@@ -132,16 +132,18 @@ void C_PropCombineBall::DrawMotionBlur( void )
 	{
 		spawnPos += spawnStep;
 
-		color[0] = color[1] = color[2] = base * ( 1.0f - ( (float) i / 12.0f ) );
+		newcolor[0] = color[0] * base * (1.0f - ((float)i / 12.0f));
+		newcolor[1] = color[1] * base * (1.0f - ((float)i / 12.0f));
+		newcolor[2] = color[2] * base * (1.0f - ((float)i / 12.0f));
 
-		DrawHalo( m_pBlurMaterial, spawnPos, m_flRadius, color );
+		DrawHalo( m_pBlurMaterial, spawnPos, m_flRadius, newcolor);
 	}
 }
 
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
-void C_PropCombineBall::DrawFlicker( void )
+void C_PropCombineBall::DrawFlicker(float const* color)
 {
 	float rand1 = random->RandomFloat( 0.2f, 0.3f );
 	float rand2 = random->RandomFloat( 1.5f, 2.5f );
@@ -152,13 +154,15 @@ void C_PropCombineBall::DrawFlicker( void )
 		rand2 = 1.5f;
 	}
 
-	float color[3];
-	color[0] = color[1] = color[2] = rand1;
+	float newcolor[3];
+	newcolor[0] = color[0] * rand1;
+	newcolor[1] = color[1] * rand1;
+	newcolor[2] = color[2] * rand1;
 
 	// Draw the flickering glow
 	CMatRenderContextPtr pRenderContext( materials );
 	pRenderContext->Bind( m_pFlickerMaterial );
-	DrawHalo( m_pFlickerMaterial, GetAbsOrigin(), m_flRadius * rand2, color );
+	DrawHalo( m_pFlickerMaterial, GetAbsOrigin(), m_flRadius * rand2, newcolor);
 }
 
 //-----------------------------------------------------------------------------
@@ -241,13 +245,17 @@ int C_PropCombineBall::DrawModel( int flags )
 		return 0;
 	}
 
+	float color[3];
+	GetColorModulation(color);
+	render->SetColorModulation(color);
+
 	// Draw the flickering overlay
-	DrawFlicker();
+	DrawFlicker(color);
 	
 	// Draw the motion blur from movement
 	if ( m_bHeld || m_bLaunched )
 	{
-		DrawMotionBlur();
+		DrawMotionBlur(color);
 	}
 
 	// Draw the model if we're being held
@@ -263,8 +271,6 @@ int C_PropCombineBall::DrawModel( int flags )
 	}
 	else
 	{
-		float color[3];
-		color[0] = color[1] = color[2] = 1.0f;
 
 		float sinOffs = 1.0f * sin( gpGlobals->curtime * 25 );
 

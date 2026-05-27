@@ -1946,8 +1946,6 @@ int DispatchSpawn( CBaseEntity *pEntity )
 //					Msg( "Added global entity %s (%s)\n", pEntity->GetClassname(), STRING(pEntity->m_iGlobalname) );
 			}
 		}
-
-		gEntList.NotifySpawn( pEntity );
 	}
 
 	return 0;

@@ -26,8 +26,8 @@ public:
 
 protected:
 
-	void	DrawMotionBlur( void );
-	void	DrawFlicker( void );
+	void	DrawMotionBlur(float const* color);
+	void	DrawFlicker(float const* color);
 	virtual bool	InitMaterials( void );
 
 	Vector	m_vecLastOrigin;

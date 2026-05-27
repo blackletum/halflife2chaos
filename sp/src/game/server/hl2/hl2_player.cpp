@@ -8294,6 +8294,7 @@ void CEColors::StartEffect()
 		}
 		ChangeEntity(pEnt);
 	}
+	//we've seen an untraceable crash happen in studiorender on d2_coast_01 when starting this effect via cte 44. the only thing that seems suspect is r_debugrandomstaticlighting. it can apparently be avoided by moving around a bit.
 }
 void CEColors::StopEffect()
 {
