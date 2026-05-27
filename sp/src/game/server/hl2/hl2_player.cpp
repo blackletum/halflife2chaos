@@ -6317,6 +6317,11 @@ bool CChaosEffect::CheckEffectContext()
 		if (!Q_strcmp(pMapName, "d1_trainstation_05") || !Q_strcmp(pMapName, "d1_eli_01") || !Q_strcmp(pMapName, "d3_c17_01"))
 			return false;
 
+	//breen01 essentially softlocks because the flaps on the core thing don't move down and it can't be destroyed
+	if (m_nID == EFFECT_HL1_PHYSICS)
+		if (!Q_strcmp(pMapName, "d3_breen_01"))
+			return false;
+
 	if (m_nContext == EC_NONE)
 		return true;
 
@@ -6336,6 +6341,7 @@ bool CChaosEffect::CheckEffectContext()
 			return false;//vehicle found
 
 	//on some maps, an important npc is unreachable by the player, but reachable by spawned enemies, meaning there's no way to save them
+	//breen 01 is intentionally not on here because alyx's killers can be reached, therefore preventing her from dying in the future on reloads
 	if (m_nContext & EC_FAR_ENEMY)
 		if (!Q_strcmp(pMapName, "d1_eli_01") || !Q_strcmp(pMapName, "d1_eli_02") || !Q_strcmp(pMapName, "d2_prison_06")
 			|| !Q_strcmp(pMapName, "ep1_citadel_03") || !Q_strcmp(pMapName, "ep1_c17_02")
