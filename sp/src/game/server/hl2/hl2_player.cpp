@@ -7235,6 +7235,20 @@ bool CChaosEffect::DontTeleportPlayer(const char* pMapName)
 	return false;
 }
 
+void CChaosEffect::TurnOffSkybox()
+{
+	g_iHideSkybox++;
+	if (g_iHideSkybox == 1)
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_3dsky 0;r_drawskybox 0");
+}
+
+void CChaosEffect::TurnOnSkybox()
+{
+	g_iHideSkybox--;
+	if (g_iHideSkybox == 0)
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_3dsky 1;r_drawskybox 1");
+}
+
 //make evil NPCs stay evil
 //can't do in the effect's MaintainEffect() because that only lasts 80 seconds
 void CHL2_Player::MaintainEvils()
@@ -9360,11 +9374,17 @@ bool CESwimInAir::CheckStrike(const CTakeDamageInfo& info)
 }
 void CELockPVS::StartEffect()
 {
-	engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_lockpvs 0; exec portalsopenall; wait 100; r_lockpvs 1; r_portalsopenall 1\n");
+	//i no longer know why r_lockpvs 0;exec portalsopenall;wait 100; is in here, i will assume the reason is good
+	engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_lockpvs 0;exec portalsopenall;wait 100;r_lockpvs 1;r_portalsopenall 1\n");
+
+	//turning off skybox avoids flashing issue
+	TurnOffSkybox();
 }
 void CELockPVS::StopEffect()
 {
-	engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_lockpvs 0; exec portalsopenall\n");
+	engine->ClientCommand(engine->PEntityOfEntIndex(1), "r_lockpvs 0;exec portalsopenall\n");
+
+	TurnOnSkybox();
 }
 void CELockPVS::TransitionEffect()
 {
@@ -10211,13 +10231,18 @@ void CENormalView::StartEffect()
 {
 	const char* pMapName = STRING(gpGlobals->mapname);
 	if (!Q_strcmp(pMapName, "ep2_outland_12a"))
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_normalmaps 1;r_3dsky 0;r_drawskybox 0;r_underwateroverlay 0");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_normalmaps 1;r_underwateroverlay 0");
 	else
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_normalmaps 1;r_3dsky 0;r_drawskybox 0;r_underwateroverlay 0;mat_normals 1");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_normalmaps 1;r_underwateroverlay 0;mat_normals 1");
+
+	//turning off skybox avoids flashing issue
+	TurnOffSkybox();
 }
 void CENormalView::StopEffect()
 {
-	engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_normalmaps 0;r_3dsky 1;r_drawskybox 1;r_underwateroverlay 1;mat_normals 0");
+	engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_normalmaps 0;r_underwateroverlay 1;mat_normals 0");
+
+	TurnOnSkybox();
 }
 void CESaveGulls::StartEffect()
 {

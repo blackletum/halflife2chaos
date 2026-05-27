@@ -208,6 +208,8 @@ public:
 	bool NeedPhysgun(const char *pMapName);
 	bool DontTeleportPlayer(const char *pMapName);
 	virtual void OnEntitySpawned(CBaseEntity* pEntity){};
+	void TurnOffSkybox();
+	void TurnOnSkybox();
 };
 //this is our macabre method of remembering persist entities. it's a holdover from when data was being stored in a txt file instead of global variables
 //preferably this will be replaced with whatever point_template does
@@ -282,22 +284,23 @@ public:
 	Vector lightoffset;
 	Vector viewoffset;
 };
-//CUtlVector<int>				g_iActiveEffects;
+
 int g_iActiveEffects[MAX_ACTIVE_EFFECTS];
 int g_iShufflePicked[NUM_EFFECTS];
 CUtlVector<CChaosEffect *>	g_ChaosEffects;
-int							g_iChaosSpawnCount = 0;
-CUtlVector<int>				g_iTerminated;//list of chaos ids to NOT restore from txt. used to remember which NPCs are dead as it would not make sense for them to come back to life.
+int				g_iChaosSpawnCount = 0;
+CUtlVector<int>	g_iTerminated;//list of chaos ids to NOT restore from txt. used to remember which NPCs are dead as it would not make sense for them to come back to life.
 CUtlVector<CChaosStoredEnt *> g_PersistEnts;
-float						g_flEffectThinkRem;
-float						g_flNextEffectRem = -1;
-int							g_arriVoteEffects[4];
-int							g_arriVotes[4];
-int							g_iVoteNumber = 0; // acts as a unique number for the external client
+float			g_flEffectThinkRem;
+float			g_flNextEffectRem = -1;
+int				g_arriVoteEffects[4];
+int				g_arriVotes[4];
+int				g_iVoteNumber = 0; // acts as a unique number for the external client
 CChaosStoredEnt *StoreEnt(CBaseEntity *pEnt);
 CBaseEntity *RetrieveStoredEnt(CChaosStoredEnt *pStoredEnt);
-bool						g_bGoBackLevel = false;
-bool						g_bAvoidExtreme = false;
+bool			g_bGoBackLevel = false;
+bool			g_bAvoidExtreme = false;
+int				g_iHideSkybox = 0;
 
 class CEBumpy : public CChaosEffect
 {
