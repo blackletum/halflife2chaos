@@ -64,6 +64,10 @@ ConVar cl_yawspeed( "cl_yawspeed", "210", FCVAR_NONE, "Client yaw speed.", true,
 ConVar cl_pitchspeed( "cl_pitchspeed", "225", FCVAR_NONE, "Client pitch speed.", true, -100000, true, 100000 );
 ConVar cl_pitchdown("cl_pitchdown", "89", FCVAR_NONE);
 ConVar cl_pitchup("cl_pitchup", "89", FCVAR_NONE);
+ConVar m_yaw("m_yaw", "0.022", FCVAR_ARCHIVE, "Mouse yaw factor.");
+ConVar m_chaos_yaw("m_chaos_yaw", "1");
+ConVar m_pitch("m_pitch", "0.022", FCVAR_ARCHIVE, "Mouse pitch factor.");
+ConVar m_chaos_pitch("m_chaos_pitch", "1");
 #if defined( CSTRIKE_DLL )
 ConVar cl_sidespeed( "cl_sidespeed", "400", FCVAR_NONE );
 ConVar cl_upspeed( "cl_upspeed", "320", FCVAR_ARCHIVE );

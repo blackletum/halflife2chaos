@@ -50,42 +50,19 @@ extern ConVar cl_pitchdown;
 extern ConVar cl_pitchup;
 extern const ConVar *sv_cheats;
 
-class ConVar_m_pitch : public ConVar_ServerBounded
-{
-public:
-	ConVar_m_pitch() : 
-		ConVar_ServerBounded( "m_pitch","0.022", FCVAR_ARCHIVE, "Mouse pitch factor." )
-	{
-	}
-	
-	virtual float GetFloat() const
-	{
-		if ( !sv_cheats )
-			sv_cheats = cvar->FindVar( "sv_cheats" );
-
-		// If sv_cheats is on then it can be anything.
-		float flBaseValue = GetBaseFloatValue();
-		if ( !sv_cheats || sv_cheats->GetBool() )
-			return flBaseValue;
-
-		// If sv_cheats is off than it can only be 0.022 or -0.022 (if they've reversed the mouse in the options).		
-		if ( flBaseValue > 0 )
-			return 0.022f;
-		else
-			return -0.022f;
-	}
-} cvar_m_pitch;
-ConVar_ServerBounded *m_pitch = &cvar_m_pitch;
-
 extern ConVar cam_idealyaw;
 extern ConVar cam_idealpitch;
 extern ConVar thirdperson_platformer;
+
+extern ConVar m_yaw;
+extern ConVar m_chaos_yaw;
+extern ConVar m_pitch;
+extern ConVar m_chaos_pitch;
 
 static ConVar m_filter( "m_filter","0", FCVAR_ARCHIVE, "Mouse filtering (set this to 1 to average the mouse over 2 frames)." );
 ConVar sensitivity( "sensitivity","3", FCVAR_ARCHIVE, "Mouse sensitivity.", true, 0.0001f, true, 10000000 );
 
 static ConVar m_side( "m_side","0.8", FCVAR_ARCHIVE, "Mouse side factor." );
-static ConVar m_yaw( "m_yaw","0.022", FCVAR_ARCHIVE, "Mouse yaw factor." );
 static ConVar m_forward( "m_forward","1", FCVAR_ARCHIVE, "Mouse forward factor." );
 
 static ConVar m_customaccel( "m_customaccel", "0", FCVAR_ARCHIVE, "Custom mouse acceleration:"
@@ -423,8 +400,8 @@ void CInput::ScaleMouse( float *x, float *y )
 		//  to 0.022
 		if ( m_customaccel.GetInt() == 2 || m_customaccel.GetInt() == 4 )
 		{ 
-			*x *= m_yaw.GetFloat(); 
-			*y *= m_pitch->GetFloat(); 
+			*x *= m_yaw.GetFloat() * m_chaos_yaw.GetFloat();
+			*y *= m_pitch.GetFloat() * m_chaos_pitch.GetFloat();
 		} 
 	}
 	else if ( m_customaccel.GetInt() == 3 )
@@ -454,13 +431,6 @@ void CInput::ApplyMouse( QAngle& viewangles, CUserCmd *cmd, float mouse_x, float
 {
 	if ( !((in_strafe.state & 1) || lookstrafe.GetInt()) )
 	{
-#ifdef PORTAL
-		if ( g_bUpsideDown )
-		{
-			viewangles[ YAW ] += m_yaw.GetFloat() * mouse_x;
-		}
-		else
-#endif //#ifdef PORTAL
 		{
 			if ( CAM_IsThirdPerson() && thirdperson_platformer.GetInt() )
 			{
@@ -469,19 +439,19 @@ void CInput::ApplyMouse( QAngle& viewangles, CUserCmd *cmd, float mouse_x, float
 					Vector vTempOffset = g_ThirdPersonManager.GetCameraOffsetAngles();
 
 					// use the mouse to orbit the camera around the player, and update the idealAngle
-					vTempOffset[ YAW ] -= m_yaw.GetFloat() * mouse_x;
+					vTempOffset[ YAW ] -= m_yaw.GetFloat() * m_chaos_yaw.GetFloat() * mouse_x;
 					cam_idealyaw.SetValue( vTempOffset[ YAW ] - viewangles[ YAW ] );
 
 					g_ThirdPersonManager.SetCameraOffsetAngles( vTempOffset );
 
 					// why doesn't this work??? CInput::AdjustYaw is why
-					//cam_idealyaw.SetValue( cam_idealyaw.GetFloat() - m_yaw.GetFloat() * mouse_x );
+					//cam_idealyaw.SetValue( cam_idealyaw.GetFloat() - m_yaw.GetFloat() * m_chaos_yaw.GetFloat() * mouse_x );
 				}
 			}
 			else
 			{
 				// Otherwize, use mouse to spin around vertical axis
-				viewangles[YAW] -= CAM_CapYaw( m_yaw.GetFloat() * mouse_x );
+				viewangles[YAW] -= CAM_CapYaw( m_yaw.GetFloat() * m_chaos_yaw.GetFloat() * mouse_x );
 			}
 		}
 	}
@@ -496,13 +466,6 @@ void CInput::ApplyMouse( QAngle& viewangles, CUserCmd *cmd, float mouse_x, float
 	//  to adjust view pitch.
 	if (!(in_strafe.state & 1))
 	{
-#ifdef PORTAL
-		if ( g_bUpsideDown )
-		{
-			viewangles[PITCH] -= m_pitch->GetFloat() * mouse_y;
-		}
-		else
-#endif //#ifdef PORTAL
 		{
 			if ( CAM_IsThirdPerson() && thirdperson_platformer.GetInt() )
 			{
@@ -511,18 +474,18 @@ void CInput::ApplyMouse( QAngle& viewangles, CUserCmd *cmd, float mouse_x, float
 					Vector vTempOffset = g_ThirdPersonManager.GetCameraOffsetAngles();
 
 					// use the mouse to orbit the camera around the player, and update the idealAngle
-					vTempOffset[ PITCH ] += m_pitch->GetFloat() * mouse_y;
+					vTempOffset[ PITCH ] += m_pitch.GetFloat() * m_chaos_pitch.GetFloat() * mouse_y;
 					cam_idealpitch.SetValue( vTempOffset[ PITCH ] - viewangles[ PITCH ] );
 
 					g_ThirdPersonManager.SetCameraOffsetAngles( vTempOffset );
 
 					// why doesn't this work??? CInput::AdjustYaw is why
-					//cam_idealpitch.SetValue( cam_idealpitch.GetFloat() + m_pitch->GetFloat() * mouse_y );
+					//cam_idealpitch.SetValue( cam_idealpitch.GetFloat() + m_pitch.GetFloat() * m_chaos_pitch.GetFloat() * mouse_y );
 				}
 			}
 			else
 			{
-				viewangles[PITCH] += m_pitch->GetFloat() * mouse_y;
+				viewangles[PITCH] += m_pitch.GetFloat() * m_chaos_pitch.GetFloat() * mouse_y;
 			}
 
 			// Check pitch bounds

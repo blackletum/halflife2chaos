@@ -6617,7 +6617,7 @@ void CChaosEffect::StartEffect()
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_picmip 4;r_lod 6;mat_filtertextures 0;mat_filterlightmaps 0");
 		break;
 	case EFFECT_NO_MOUSE_VERTICAL:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "sv_cheats 1;wait 10;m_pitch 0.0f;cl_pitchspeed 0");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "sv_cheats 1;wait 10;m_chaos_pitch 0.0f;cl_pitchspeed 0");
 		break;
 	case EFFECT_GIVE_ALL_WEAPONS:
 		UTIL_GetLocalPlayer()->EquipSuit();
@@ -6696,7 +6696,7 @@ void CChaosEffect::StopEffect()
 		engine->ClientCommand(engine->PEntityOfEntIndex(1), "mat_picmip -1;r_lod -1;mat_filtertextures 1;mat_filterlightmaps 1\n");
 		break;
 	case EFFECT_NO_MOUSE_VERTICAL:
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec pitch\n");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_chaos_pitch 1\n");
 		break;
 	case EFFECT_NADE_GUNS:
 		chaos_replace_bullets_with_grenades.SetValue(0);
@@ -10153,10 +10153,10 @@ void CEMirrorWorld::StartEffect()
 {
 	engine->ClientCommand(engine->PEntityOfEntIndex(1), "chaos_flip_screen 1;chaos_invert_stereo 1;chaos_flip_vehicle_input 1;chaos_flip_crosshair_x_offset 1");
 
-	//set m_yaw in respect to No Looking Left/Right
+	//set m_chaos_yaw in respect to No Looking Left/Right
 	if (!g_ChaosEffects[EFFECT_NO_MOUSE_HORIZONTAL]->m_bActive)
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec negative_yaw\n");
-	//if it's active, keep m_yaw at 0
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_chaos_yaw -1\n");
+	//if it's active, keep m_chaos_yaw at 0
 
 	//set cl_sidespeed in respect to Super Speed
 	if (!g_ChaosEffects[EFFECT_SUPER_MOVEMENT]->m_bActive)
@@ -10176,10 +10176,10 @@ void CEMirrorWorld::StopEffect()
 {
 	engine->ClientCommand(engine->PEntityOfEntIndex(1), "chaos_flip_screen 0;chaos_invert_stereo 0;chaos_flip_vehicle_input 0;chaos_flip_crosshair_x_offset 0");
 
-	//set m_yaw in respect to No Looking Left/Right
+	//set m_chaos_yaw in respect to No Looking Left/Right
 	if (!g_ChaosEffects[EFFECT_NO_MOUSE_HORIZONTAL]->m_bActive)
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec yaw\n");
-	//if it's active, keep m_yaw at 0
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_chaos_yaw 1\n");
+	//if it's active, keep m_chaos_yaw at 0
 
 	//set cl_sidespeed in respect to Super Speed
 	if (!g_ChaosEffects[EFFECT_SUPER_MOVEMENT]->m_bActive)
@@ -10197,15 +10197,15 @@ void CEMirrorWorld::StopEffect()
 }
 void CENoMouseHorz::StartEffect()
 {
-	engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_yaw 0.0f;cl_yawspeed 0");
+	engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_chaos_yaw 0.0f;cl_yawspeed 0");
 }
 void CENoMouseHorz::StopEffect()
 {
-	//set m_yaw in respect to Mirror World
+	//set m_chaos_yaw in respect to Mirror World
 	if (!g_ChaosEffects[EFFECT_MIRROR_WORLD]->m_bActive)
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec yaw\n");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_chaos_yaw 1\n");
 	else
-		engine->ClientCommand(engine->PEntityOfEntIndex(1), "exec negative_yaw\n");
+		engine->ClientCommand(engine->PEntityOfEntIndex(1), "m_chaos_yaw -1\n");
 }
 void CENormalView::StartEffect()
 {
