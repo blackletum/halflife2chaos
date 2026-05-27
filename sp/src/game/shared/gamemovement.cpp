@@ -57,6 +57,8 @@ ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCH
 
 ConVar steepness_limit("steepness_limit", "0.7");
 
+ConVar chaos_flip_ladder_input("chaos_flip_ladder_input", "0");
+
 #ifdef STAGING_ONLY
 #ifdef CLIENT_DLL
 ConVar debug_latch_reset_onduck("debug_latch_reset_onduck", "1", FCVAR_NONE);
@@ -2880,8 +2882,13 @@ bool CGameMovement::LadderMove( void )
 	//eg climbing from a wall onto a ceiling
 	if (mv->m_flForwardMove || mv->m_flSideMove)
 	{
+		float flSideMove = chaos_flip_ladder_input.GetBool() ? -mv->m_flSideMove : mv->m_flSideMove;
 		for (int i = 0; i < 3; i++)       // Determine x and y parts of velocity
-			wishdir[i] = m_vecForward[i] * mv->m_flForwardMove + m_vecRight[i] * mv->m_flSideMove;
+			wishdir[i] = m_vecForward[i] * mv->m_flForwardMove + m_vecRight[i] * flSideMove;
+
+//#ifndef CLIENT_DLL
+		//NDebugOverlay::Line(mv->GetAbsOrigin(), mv->GetAbsOrigin() + wishdir, 255, 255, 255, true, 10);
+//#endif // CLIENT_DLL
 
 		VectorNormalize(wishdir);
 	}
@@ -2958,6 +2965,9 @@ bool CGameMovement::LadderMove( void )
 	
 	if ( mv->m_nButtons & IN_MOVERIGHT )
 		rightSpeed += climbSpeed;
+
+	if (chaos_flip_ladder_input.GetBool())
+		rightSpeed = -rightSpeed;
 
 	if ( mv->m_nButtons & IN_JUMP )
 	{
